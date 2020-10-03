@@ -6,7 +6,7 @@
 		<style>
 			#viz-container {
 				width: 100%;
-				min-height: 500px;
+				max-height: 500px;
 			}
 			svg {
 				width: 100%;
@@ -25,7 +25,7 @@
 			<p><i>N</i> is the number of input nodes. It should be a power of 2.</p>
 		</section>
 		<section id="viz-container">
-			<svg id="viz"></svg>
+			<svg viewbox="0 0 1200 1800" id="viz"></svg>
 		</section>
 		<footer>
 			Footer
@@ -75,6 +75,32 @@
 			const pathData = symbolGenerator()
 
 			function updateViz(n) {
+				// clear previous viz if any
+				d3.selectAll("svg > *").remove()
+
+				let inputEnter = d3.select("svg")
+					.selectAll("rect")
+					.data(generateBinaryLabels(n)).enter()
+
+				// draw input nodes					
+				inputEnter.append("rect")
+					.attr("height", 20).attr("width", 20)
+					.attr("stroke", "black").attr("fill", "transparent")
+					.attr("y", (d,i) => i * 50 + 20)
+					.attr("x", 20)
+					.text(function(d) { return "I’m number " + d + "!"; })
+				
+				// write in[x] and binary labels
+				inputEnter.append("text")
+					.text(d => d)
+					.attr("y", (d,i) => i * 50 + 55)
+					.attr("x", 20)
+
+				// draw levels of switches
+
+				// animate drawing edges
+
+				/*
 				d3.select("svg") // #viz
 				.selectAll("circle")
 				.data(generateBinaryLabels(n))
@@ -85,7 +111,9 @@
 				.attr("r", 10)
 				.attr("cy", (d,i) => i * 50 + 30)
 				.attr("cx", 10)
-				//.text(function(d) { return "I’m number " + d + "!"; })
+				
+				.text(function(d) { return "I’m number " + d + "!"; })
+				*/
 			}
 		</script>
 	</body>
