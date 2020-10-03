@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Butterfly</title>
+		<script src="https://d3js.org/d3.v6.min.js"></script>
+		<style>
+			#viz-container {
+				width: 100%;
+				min-height: 500px;
+			}
+			svg {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<h1>Butterfly</h1>
+		</header>
+		<section>
+			<label for="n">N: </label>
+			<input type="text" id="n">
+			<input type="submit" id="submit" value="Draw">
+			<p><i>N</i> is the number of input nodes. It should be a power of 2.</p>
+		</section>
+		<section id="viz-container">
+			<svg id="viz"></svg>
+		</section>
+		<footer>
+			Footer
+		</footer>
+		<script>
+			const submit = document.querySelector("#submit")
+			const nInput = document.querySelector("#n")
+			submit.addEventListener("click", () => handleSubmit(nInput.value))
+
+			function isNPowerOf2(n) {				
+				while (n % 2 == 0) {
+					n = n / 2
+				}
+				return n == 1
+			}
+
+			function handleSubmit(n) {
+				if (n === "") {
+					alert("Please enter a value")
+				} else if (isNaN(parseInt(n))) {
+					alert("Please enter number")
+				} else if (n === "0") {
+					alert("Please enter a non-zero number")
+				} else if (!isNPowerOf2(n)) {
+					alert("Please enter a power of 2")
+				} else {
+					updateViz(n)
+				}
+			}
+
+			function generateBinaryLabels(n) {
+				let labels = []
+				const numDigits = Math.trunc( Math.log2(n-1) + 1 )
+				for (i = 0; i < n; i++) {
+					let binary = i.toString(2)
+					if (binary.length < numDigits) {
+						binary = "0".repeat(numDigits - binary.length) + binary
+					}
+					labels.push(binary)
+				}
+				return labels
+			}
+
+			const symbolGenerator = d3.symbol()
+				.type(d3.symbolCircle)
+				.size(80);
+			const pathData = symbolGenerator()
+
+			function updateViz(n) {
+				d3.select("svg") // #viz
+				.selectAll("circle")
+				.data(generateBinaryLabels(n))
+				.enter()
+				.append("circle")
+				.attr("stroke", "black")
+				.attr("fill", "transparent")
+				.attr("r", 10)
+				.attr("cy", (d,i) => i * 50 + 30)
+				.attr("cx", 10)
+				//.text(function(d) { return "I’m number " + d + "!"; })
+			}
+		</script>
+	</body>
+</html>
