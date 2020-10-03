@@ -6,7 +6,6 @@
 		<style>
 			#viz-container {
 				width: 100%;
-				max-height: 500px;
 			}
 			svg {
 				width: 100%;
@@ -27,9 +26,6 @@
 		<section id="viz-container">
 			<svg viewbox="0 0 1200 1800" id="viz"></svg>
 		</section>
-		<footer>
-			Footer
-		</footer>
 		<script>
 			const submit = document.querySelector("#submit")
 			const nInput = document.querySelector("#n")
@@ -75,28 +71,48 @@
 			const pathData = symbolGenerator()
 
 			function updateViz(n) {
+				const labels = generateBinaryLabels(n)
+				const labelLen = labels[0].length
+				const smallN = Math.log2(n)
+				
 				// clear previous viz if any
 				d3.selectAll("svg > *").remove()
 
 				let inputEnter = d3.select("svg")
 					.selectAll("rect")
-					.data(generateBinaryLabels(n)).enter()
+					.data(labels).enter()
 
 				// draw input nodes					
 				inputEnter.append("rect")
 					.attr("height", 20).attr("width", 20)
 					.attr("stroke", "black").attr("fill", "transparent")
 					.attr("y", (d,i) => i * 50 + 20)
-					.attr("x", 20)
+					.attr("x", 45 + Math.log10(n) * 4)
 					.text(function(d) { return "I’m number " + d + "!"; })
 				
 				// write in[x] and binary labels
 				inputEnter.append("text")
 					.text(d => d)
 					.attr("y", (d,i) => i * 50 + 55)
-					.attr("x", 20)
+					.attr("x", 45 + Math.log10(n) * 4)
+				inputEnter.append("text")
+					.text((d,i) => "in" + i)
+					.attr("font-weight", "bold")
+					.attr("y", (d,i) => i * 50 + 35)
+					.attr("x", 10)
 
 				// draw levels of switches
+				let switches = []
+
+				for (level = 1; level <= smallN; level++) {
+					inputEnter.append("circle")
+						.attr("r", 10)
+						.attr("stroke", "black").attr("fill", "transparent")
+						.attr("cy", (d,i) => i * 50 + 30)
+						.attr("cx", 150 * level + Math.log(n) * 8)
+				}
+
+				
 
 				// animate drawing edges
 
