@@ -24,8 +24,17 @@
 			<p><i>N</i> is the number of input nodes. It should be a power of 2.</p>
 		</section>
 		<section id="viz-container">
-			<svg viewbox="0 0 1200 1800" id="viz"></svg>
+			<svg viewbox="0 0 1200 2200" id="viz">
+			</svg>
 		</section>
+		<svg>
+			<!-- arrowhead marker definition -->
+				<marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5"
+					markerWidth="6" markerHeight="6"
+					orient="auto-start-reverse">
+				<path d="M 0 0 L 10 5 L 0 10 z" />
+				</marker>
+		</svg>
 		<script>
 			const submit = document.querySelector("#submit")
 			const nInput = document.querySelector("#n")
@@ -71,50 +80,96 @@
 			const pathData = symbolGenerator()
 
 			function updateViz(n) {
-				const labels = generateBinaryLabels(n)
-				const labelLen = labels[0].length
-				const smallN = Math.log2(n)
-				
 				// clear previous viz if any
-				d3.selectAll("svg > *").remove()
+				d3.selectAll("#viz > *").remove()
 
-				let inputEnter = d3.select("svg")
+				const data = generateBinaryLabels(n)
+				const labelLen = data[0].length
+				const smallN = Math.log2(n)
+				const largeNOffset = n.length * 4 // if n is large, then in###... will be long
+				const firstSwitchCx = largeNOffset + 120
+				const perLevelDist = 50
+				const nodeSideLen = 20
+				
+				const getNodeCoords = (i, isInput) => {
+					// i = ith row
+					// return coords of center of input/output square
+					let y = i * 50 + 30
+					//let x = 45 + largeNOffset + nodeSideLen
+					let x = 80
+					if (!isInput) {
+						x = (smallN + 1) * perLevelDist + firstSwitchCx - 15
+					}
+					return [x, y]
+				}
+				const getSwitchCoords = (row, level) => {
+					let y = row * 50 + 30
+					let x = level * perLevelDist + firstSwitchCx - 30
+					return [x, y]
+				}
+
+				let dataEnter = d3.select("svg")
 					.selectAll("rect")
-					.data(labels).enter()
+					.data(data).enter()
 
-				// draw input nodes					
-				inputEnter.append("rect")
-					.attr("height", 20).attr("width", 20)
+				// draw input nodes
+				dataEnter.append("rect")
+					.attr("height", nodeSideLen).attr("width", nodeSideLen)
 					.attr("stroke", "black").attr("fill", "transparent")
 					.attr("y", (d,i) => i * 50 + 20)
-					.attr("x", 45 + Math.log10(n) * 4)
-					.text(function(d) { return "I’m number " + d + "!"; })
+					.attr("x", 45 + largeNOffset)
 				
-				// write in[x] and binary labels
-				inputEnter.append("text")
+				// input binary labels
+				dataEnter.append("text")
 					.text(d => d)
 					.attr("y", (d,i) => i * 50 + 55)
-					.attr("x", 45 + Math.log10(n) * 4)
-				inputEnter.append("text")
+					.attr("x", 45 + largeNOffset)
+				
+				// input in# labels
+				dataEnter.append("text")
 					.text((d,i) => "in" + i)
 					.attr("font-weight", "bold")
 					.attr("y", (d,i) => i * 50 + 35)
 					.attr("x", 10)
 
 				// draw levels of switches
-				let switches = []
-
-				for (level = 1; level <= smallN; level++) {
-					inputEnter.append("circle")
+				for (level = 0; level < smallN + 1; level++) {
+					dataEnter.append("circle")
 						.attr("r", 10)
 						.attr("stroke", "black").attr("fill", "transparent")
 						.attr("cy", (d,i) => i * 50 + 30)
-						.attr("cx", 150 * level + Math.log(n) * 8)
+						.attr("cx", perLevelDist * level + firstSwitchCx)
 				}
 
-				
+				// draw and label output nodes
+				const lastSwitchDist = firstSwitchCx + perLevelDist * (smallN + 1)
+				dataEnter.append("rect")
+					.attr("height", nodeSideLen).attr("width", nodeSideLen)
+					.attr("stroke", "black").attr("fill", "transparent")
+					.attr("y", (d,i) => i * 50 + 20)
+					.attr("x", lastSwitchDist)
+				dataEnter.append("text")
+					.text((d,i) => "out" + i)
+					.attr("font-weight", "bold")
+					.attr("y", (d,i) => i * 50 + 35)
+					.attr("x", lastSwitchDist + 30)
 
-				// animate drawing edges
+				// TODO: animate drawing edges
+				// edges from input to level 0
+				dataEnter
+					.append('path')
+					.attr('d', (d,i) => d3.line()([getSwitchCoords(i, 0), getNodeCoords(i, true)]))
+					.attr('stroke', 'black')
+					.attr('marker-start', 'url(#arrow)')
+					.attr('fill', 'none');
+				// edges from level n+1 to outputs
+				dataEnter
+					.append('path')
+					.attr('d', (d,i) => d3.line()([getNodeCoords(i, false), getSwitchCoords(i, smallN + 1)]))
+					.attr('stroke', 'black')
+					.attr('marker-start', 'url(#arrow)')
+					.attr('fill', 'none');
+
 
 				/*
 				d3.select("svg") // #viz
